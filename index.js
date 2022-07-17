@@ -9,19 +9,113 @@
 
 */
 
+/*  
+
+
+*Fetching data with redux thunk* 
+
+
+
+*/
+const { createStore, applyMiddleware } = require("redux");
+const { default: thunk } = require("redux-thunk");
+const axios = require("axios");
+//constants
+
+const getRequest = "getRequest";
+const getData = "getData";
+const errorMessage = "errorMessage";
+
+//state
+
+const posts = {
+  posts: [],
+  isLoading: false,
+  error: null,
+};
+
+//action
+
+const getRequestPosts = () => {
+  return {
+    type: getRequest,
+  };
+};
+const getDataPosts = (posts) => {
+  return {
+    type: getData,
+    payload: posts,
+  };
+};
+const getError = (error) => {
+  return {
+    type: errorMessage,
+    payload: error,
+  };
+};
+
+//reducer
+
+const postReducer = (state = posts, action) => {
+  switch (action.type) {
+    case getRequest:
+      return {
+        ...state,
+        isLoading: true,
+      };
+    case getData:
+      return {
+        ...state,
+        isLoading: false,
+        posts: action.payload,
+      };
+    case errorMessage:
+      return {
+        ...state,
+        error: action.payload,
+      };
+
+    default:
+      return state;
+  }
+};
+
+//fetch data
+
+const fetchData = () => {
+  return (dispatch) => {
+    dispatch(getRequestPosts());
+    axios
+      .get("https://jsonplaceholder.typicode.com/posts")
+      .then((res) => {
+        dispatch(getDataPosts(res.data.slice(0, 3)));
+      })
+      .catch((error) => {
+        dispatch(getError(error.message));
+      });
+  };
+};
+
+//store
+
+const store = createStore(postReducer, applyMiddleware(thunk));
+store.subscribe(() => {
+  console.log(store.getState());
+});
+
+store.dispatch(fetchData());
+
 /*
 
 ** Multiple Reducer
-
-*/
-
-const { createStore, combineReducers } = require("redux");
+const { createStore, combineReducers, applyMiddleware } = require("redux");
+const { default: logger } = require("redux-logger");
 
 //constants
 
 const ADD_PRODUCT = "ADD_PRODUCT";
 
-/* state */
+//state 
 
 //Products state
 
@@ -37,7 +131,7 @@ const cart = {
   totalProducts: 2,
 };
 
-/* Action */
+// Action 
 
 //action for products
 
@@ -55,7 +149,7 @@ const addCart = (cart) => {
   };
 };
 
-/* Reducer */
+//* Reducer
 
 //products reducer
 const productsReducer = (state = products, action) => {
@@ -95,13 +189,15 @@ const rootReducer = combineReducers({
 
 //store
 
-const store = createStore(rootReducer);
+const store = createStore(rootReducer, applyMiddleware(logger));
 store.subscribe(() => {
   console.log(store.getState());
 });
 
 store.dispatch(addProduct("nailpolish"));
-store.dispatch(addCart("nail"));
+// store.dispatch(addCart("nail"));
+
+*/
 
 /* 
 
